@@ -1,9 +1,11 @@
-from django.shortcuts import render
-from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.http import JsonResponse, HttpResponse
 import json
 import datetime
 from .models import *
 from .utils import cookieCart, cartData, guestOrder
+from django.contrib.auth.models import User
+from django.contrib import messages
 
 
 # Create your views here.
@@ -82,6 +84,8 @@ def processOrder(request):
         order.complete = True
     order.save()
 
+
+
     if order.shipping == True:
         ShippingAddress.objects.create(
             customer=customer,
@@ -92,4 +96,35 @@ def processOrder(request):
             zipcode=data['shipping']['zipcode'],
         )
 
+
     return JsonResponse('Payment submitted..', safe=False)
+
+def signup(request):
+
+    if request.method == "POST":
+        username = request.POST['username']
+        fname = request.POST['fname']
+        lname = request.POST['lname']
+        email = request.POST['email']
+        pass1 = request.POST['pass1']
+        pass2 = request.POST['pass2']
+
+        myuser = User.objects.create_user(username,email,pass1)
+        myuser.first_name = fname
+        myuser.last_name = lname
+
+        myuser.save()
+
+        messages.success(request,"Your account has been successfully created")
+        return redirect('signin')
+
+
+    return render(request,'store/Signup.html')
+
+def signin(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        pass1 = request.POST['pass1']
+
+
+    return render(request,'store/Signin.html')
